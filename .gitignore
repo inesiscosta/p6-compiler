@@ -1,0 +1,9 @@
+*.o
+*.asm
+*.xml
+p6
+.auto/*.h
+*.output
+*.tab.c
+*.tab.h
+p6_scanner.cpp
