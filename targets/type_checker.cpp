@@ -170,17 +170,15 @@ void p6::type_checker::do_evaluation_node(p6::evaluation_node *const node, int l
 }
 
 void p6::type_checker::do_print_node(p6::print_node *const node, int lvl) {
-  node->argument()->accept(this, lvl + 2);
+  for (size_t i = 0; i < node->arguments()->size(); i++)
+    node->arguments()->node(i)->accept(this, lvl + 2);
 }
 
 //---------------------------------------------------------------------------
 
-void p6::type_checker::do_read_node(p6::read_node *const node, int lvl) {
-  try {
-    node->argument()->accept(this, lvl);
-  } catch (const std::string &id) {
-    throw "undeclared variable '" + id + "'";
-  }
+void p6::type_checker::do_input_node(p6::input_node *const node, int lvl) {
+  ASSERT_UNSPEC;
+  node->type(cdk::primitive_type::create(4, cdk::TYPE_INT));
 }
 
 //---------------------------------------------------------------------------
@@ -198,6 +196,66 @@ void p6::type_checker::do_if_node(p6::if_node *const node, int lvl) {
 void p6::type_checker::do_if_else_node(p6::if_else_node *const node, int lvl) {
   node->condition()->accept(this, lvl + 4);
 }
+
+//---------------------------------------------------------------------------
+
+void p6::type_checker::do_block_node(p6::block_node *const node, int lvl) {
+  // TODO
+}
+
+void p6::type_checker::do_return_node(p6::return_node *const node, int lvl) {
+  // TODO
+}
+
+void p6::type_checker::do_stop_node(p6::stop_node *const node, int lvl) {
+  // TODO
+}
+
+void p6::type_checker::do_next_node(p6::next_node *const node, int lvl) {
+  // TODO
+}
+
+//---------------------------------------------------------------------------
+
+void p6::type_checker::do_nullptr_node(p6::nullptr_node *const node, int lvl) {
+  // TODO
+}
+
+void p6::type_checker::do_address_of_node(p6::address_of_node *const node, int lvl) {
+  // TODO
+}
+
+void p6::type_checker::do_index_node(p6::index_node *const node, int lvl) {
+  // TODO
+}
+
+void p6::type_checker::do_stack_alloc_node(p6::stack_alloc_node *const node, int lvl) {
+  // TODO
+}
+
+void p6::type_checker::do_sizeof_node(p6::sizeof_node *const node, int lvl) {
+  // TODO
+}
+
+void p6::type_checker::do_function_call_node(p6::function_call_node *const node, int lvl) {
+  // TODO
+}
+
+//---------------------------------------------------------------------------
+
+void p6::type_checker::do_variable_declaration_node(p6::variable_declaration_node *const node, int lvl) {
+  // TODO
+}
+
+void p6::type_checker::do_function_declaration_node(p6::function_declaration_node *const node, int lvl) {
+  // TODO
+}
+
+void p6::type_checker::do_function_definition_node(p6::function_definition_node *const node, int lvl) {
+  // TODO
+}
+
+//---------------------------------------------------------------------------
 
 void p6::type_checker::do_balanced3_node(cdk::balanced3_node * const node, int lvl) {
   // TODO
