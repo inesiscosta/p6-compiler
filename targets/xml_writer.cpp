@@ -160,16 +160,15 @@ void p6::xml_writer::do_evaluation_node(p6::evaluation_node * const node, int lv
 void p6::xml_writer::do_print_node(p6::print_node * const node, int lvl) {
   ASSERT_SAFE_EXPRESSIONS;
   openTag(node, lvl);
-  node->argument()->accept(this, lvl + 2);
+  node->arguments()->accept(this, lvl + 2);
   closeTag(node, lvl);
 }
 
 //---------------------------------------------------------------------------
 
-void p6::xml_writer::do_read_node(p6::read_node * const node, int lvl) {
+void p6::xml_writer::do_input_node(p6::input_node * const node, int lvl) {
   ASSERT_SAFE_EXPRESSIONS;
   openTag(node, lvl);
-  node->argument()->accept(this, lvl + 2);
   closeTag(node, lvl);
 }
 
@@ -215,6 +214,66 @@ void p6::xml_writer::do_if_else_node(p6::if_else_node * const node, int lvl) {
   closeTag("else", lvl + 2);
   closeTag(node, lvl);
 }
+
+//---------------------------------------------------------------------------
+
+void p6::xml_writer::do_block_node(p6::block_node * const node, int lvl) {
+  // TODO
+}
+
+void p6::xml_writer::do_return_node(p6::return_node * const node, int lvl) {
+  // TODO
+}
+
+void p6::xml_writer::do_stop_node(p6::stop_node * const node, int lvl) {
+  // TODO
+}
+
+void p6::xml_writer::do_next_node(p6::next_node * const node, int lvl) {
+  // TODO
+}
+
+//---------------------------------------------------------------------------
+
+void p6::xml_writer::do_nullptr_node(p6::nullptr_node * const node, int lvl) {
+  // TODO
+}
+
+void p6::xml_writer::do_address_of_node(p6::address_of_node * const node, int lvl) {
+  // TODO
+}
+
+void p6::xml_writer::do_index_node(p6::index_node * const node, int lvl) {
+  // TODO
+}
+
+void p6::xml_writer::do_stack_alloc_node(p6::stack_alloc_node * const node, int lvl) {
+  // TODO
+}
+
+void p6::xml_writer::do_sizeof_node(p6::sizeof_node * const node, int lvl) {
+  // TODO
+}
+
+void p6::xml_writer::do_function_call_node(p6::function_call_node * const node, int lvl) {
+  // TODO
+}
+
+//---------------------------------------------------------------------------
+
+void p6::xml_writer::do_variable_declaration_node(p6::variable_declaration_node * const node, int lvl) {
+  // TODO
+}
+
+void p6::xml_writer::do_function_declaration_node(p6::function_declaration_node * const node, int lvl) {
+  // TODO
+}
+
+void p6::xml_writer::do_function_definition_node(p6::function_definition_node * const node, int lvl) {
+  // TODO
+}
+
+//---------------------------------------------------------------------------
 
 void p6::xml_writer::do_balanced3_node(cdk::balanced3_node * const node, int lvl) {
   ASSERT_SAFE_EXPRESSIONS;
