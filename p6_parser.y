@@ -63,8 +63,7 @@ list : stmt      { $$ = new cdk::sequence_node(LINE, $1); }
      ;
 
 stmt : expr ';'                         { $$ = new p6::evaluation_node(LINE, $1); }
-     | tPRINT expr ';'                  { $$ = new p6::print_node(LINE, $2); }
-     | tREAD lval ';'                   { $$ = new p6::read_node(LINE, $2); }
+     | tPRINT expr ';'                  { $$ = new p6::print_node(LINE, new cdk::sequence_node(LINE, $2), true); }
      | tWHILE '(' expr ')' stmt         { $$ = new p6::while_node(LINE, $3, $5); }
      | tIF '(' expr ')' stmt %prec tIFX { $$ = new p6::if_node(LINE, $3, $5); }
      | tIF '(' expr ')' stmt tELSE stmt { $$ = new p6::if_else_node(LINE, $3, $5, $7); }
@@ -72,6 +71,7 @@ stmt : expr ';'                         { $$ = new p6::evaluation_node(LINE, $1)
      ;
 
 expr : tINTEGER              { $$ = new cdk::integer_node(LINE, $1); }
+     | tREAD                 { $$ = new p6::input_node(LINE); }
      | tSTRING               { $$ = new cdk::string_node(LINE, $1); }
      | '-' expr %prec tUNARY { $$ = new cdk::unary_minus_node(LINE, $2); }
      | '+' expr %prec tUNARY { $$ = new cdk::unary_plus_node(LINE, $2); }
