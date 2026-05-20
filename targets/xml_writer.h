@@ -9,7 +9,7 @@ namespace p6 {
    * Print nodes as XML elements to the output stream.
    */
   class xml_writer: public basic_ast_visitor {
-    cdk::symbol_table<p6::symbol> &_symtab;
+  [[maybe_unused]] cdk::symbol_table<p6::symbol> &_symtab;
 
   public:
     xml_writer(std::shared_ptr<cdk::compiler> compiler, cdk::symbol_table<p6::symbol> &symtab) :
