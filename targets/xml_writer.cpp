@@ -6,14 +6,13 @@
 //---------------------------------------------------------------------------
 
 void p6::xml_writer::do_nil_node(cdk::nil_node * const node, int lvl) {
-  openTag(node, lvl);
-  closeTag(node, lvl);
+  // Empty
 }
 void p6::xml_writer::do_data_node(cdk::data_node * const node, int lvl) {
-  os() << std::string(lvl, ' ') << "<" << node->label() << " size='" << node->size() << "'>...</" << node->label() << ">" << std::endl;
+  // Empty
 }
 void p6::xml_writer::do_double_node(cdk::double_node * const node, int lvl) {
-  process_literal(node, lvl);
+  // Empty
 }
 void p6::xml_writer::do_not_node(cdk::not_node * const node, int lvl) {
   do_unary_operation(node, lvl);
@@ -164,7 +163,7 @@ void p6::xml_writer::do_evaluation_node(p6::evaluation_node * const node, int lv
 
 void p6::xml_writer::do_print_node(p6::print_node * const node, int lvl) {
   ASSERT_SAFE_EXPRESSIONS;
-  openTag(node, lvl);
+  os() << std::string(lvl, ' ') << "<" << node->label() << " newline='" << (node->newline() ? "true" : "false") << "'>" << std::endl;
   if (node->arguments()) {
     node->arguments()->accept(this, lvl + 2);
   }
@@ -310,8 +309,25 @@ void p6::xml_writer::do_function_call_node(p6::function_call_node * const node, 
 
 //---------------------------------------------------------------------------
 
+static std::string xml_escape(const std::string &s) {
+  std::string r;
+  for (char c : s) {
+    if      (c == '<') r += "&lt;";
+    else if (c == '>') r += "&gt;";
+    else if (c == '&') r += "&amp;";
+    else if (c == '\'') r += "&apos;";
+    else if (c == '"') r += "&quot;";
+    else r += c;
+  }
+  return r;
+}
+
 void p6::xml_writer::do_variable_declaration_node(p6::variable_declaration_node * const node, int lvl) {
-  os() << std::string(lvl, ' ') << "<" << node->label() << " qualifier='" << node->qualifier() << "' name='" << node->name() << "'>" << std::endl;
+  std::string type_name = node->vartype() ? xml_escape(cdk::to_string(node->vartype())) : "auto";
+  os() << std::string(lvl, ' ') << "<" << node->label()
+       << " qualifier='" << node->qualifier() << "'"
+       << " name='" << node->name() << "'"
+       << " type='" << type_name << "'>" << std::endl;
   if (node->initializer()) {
     openTag("initializer", lvl + 2);
     node->initializer()->accept(this, lvl + 4);
@@ -321,7 +337,11 @@ void p6::xml_writer::do_variable_declaration_node(p6::variable_declaration_node 
 }
 
 void p6::xml_writer::do_function_declaration_node(p6::function_declaration_node * const node, int lvl) {
-  os() << std::string(lvl, ' ') << "<" << node->label() << " qualifier='" << node->qualifier() << "' name='" << node->name() << "'>" << std::endl;
+  std::string type_name = node->type() ? xml_escape(cdk::to_string(node->type())) : "void";
+  os() << std::string(lvl, ' ') << "<" << node->label()
+       << " qualifier='" << node->qualifier() << "'"
+       << " name='" << node->name() << "'"
+       << " type='" << type_name << "'>" << std::endl;
   openTag("params", lvl + 2);
   if (node->params()) {
     node->params()->accept(this, lvl + 4);
@@ -331,7 +351,11 @@ void p6::xml_writer::do_function_declaration_node(p6::function_declaration_node 
 }
 
 void p6::xml_writer::do_function_definition_node(p6::function_definition_node * const node, int lvl) {
-  os() << std::string(lvl, ' ') << "<" << node->label() << " qualifier='" << node->qualifier() << "' name='" << node->name() << "'>" << std::endl;
+  std::string type_name = node->type() ? xml_escape(cdk::to_string(node->type())) : "void";
+  os() << std::string(lvl, ' ') << "<" << node->label()
+       << " qualifier='" << node->qualifier() << "'"
+       << " name='" << node->name() << "'"
+       << " type='" << type_name << "'>" << std::endl;
   openTag("params", lvl + 2);
   if (node->params()) {
     node->params()->accept(this, lvl + 4);
@@ -358,7 +382,5 @@ void p6::xml_writer::do_takum3_node(cdk::takum3_node * const node, int lvl) {
 }
 
 void p6::xml_writer::do_posit3_node(cdk::posit3_node * const node, int lvl) {
-  ASSERT_SAFE_EXPRESSIONS;
-  openTag(node, lvl);
-  closeTag(node, lvl);
+  // Empty
 }
