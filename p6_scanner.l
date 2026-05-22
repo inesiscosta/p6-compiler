@@ -99,8 +99,9 @@ int comment_nesting = 0;
 <X_STRING_IGNORE>.            ;
 
   /* Numeric Literals */
-  /* Float & Exponential Notation Literals. (TODO: Check if we care for .5 or 5.0) */
-[0-9]+\.[0-9]+([eE][-+]?[0-9]+)?  { yylval.s = new std::string(yytext); return tREAL_LITERAL; }
+  /* Float & Exponential Notation Literals. */
+[0-9]*\.[0-9]+([eE][-+]?[0-9]+)?  { yylval.s = new std::string(yytext); return tREAL_LITERAL; }
+[0-9]+\.[0-9]*([eE][-+]?[0-9]+)?  { yylval.s = new std::string(yytext); return tREAL_LITERAL; }
 [0-9]+[eE][-+]?[0-9]+             { yylval.s = new std::string(yytext); return tREAL_LITERAL; }
 
   /* Base 3 literals */
