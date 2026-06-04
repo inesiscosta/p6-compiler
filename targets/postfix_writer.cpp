@@ -1,31 +1,35 @@
-#include <string>
-#include <sstream>
+#include "targets/postfix_writer.h"
+#include ".auto/all_nodes.h" // all_nodes.h is automatically generated
+#include "p6_parser.tab.h"
+#include "targets/type_checker.h"
 #include <iomanip>
 #include <iostream>
-#include "targets/type_checker.h"
-#include "targets/postfix_writer.h"
-#include ".auto/all_nodes.h"  // all_nodes.h is automatically generated
-#include "p6_parser.tab.h"
+#include <sstream>
+#include <string>
 
 //---------------------------------------------------------------------------
 // Private Helpers
 //---------------------------------------------------------------------------
 
-void p6::postfix_writer::promote(std::shared_ptr<cdk::basic_type> from, std::shared_ptr<cdk::basic_type> to) {
-  if (!from || !to) return;
-  if (from->name() == to->name()) return;
-  if (from->name() == cdk::TYPE_BALANCED3 && to->name() == cdk::TYPE_TAKUM3) {
+void p6::postfix_writer::promote(std::shared_ptr<cdk::basic_type> from,
+                                 std::shared_ptr<cdk::basic_type> to) {
+  if (!from || !to)
+    return;
+  if (from->name() == to->name())
+    return;
+  if (from->name() == cdk::TYPE_BALANCED3 && to->name() == cdk::TYPE_TAKUM3)
     _pf.B2T();
-  }
 }
 
-std::shared_ptr<cdk::basic_type> p6::postfix_writer::get_common_type(std::shared_ptr<cdk::basic_type> lt, std::shared_ptr<cdk::basic_type> rt) {
-  if (lt->name() == cdk::TYPE_TAKUM3 || rt->name() == cdk::TYPE_TAKUM3) {
+std::shared_ptr<cdk::basic_type>
+p6::postfix_writer::get_common_type(std::shared_ptr<cdk::basic_type> lt,
+                                    std::shared_ptr<cdk::basic_type> rt) {
+  if (lt->name() == cdk::TYPE_TAKUM3 || rt->name() == cdk::TYPE_TAKUM3)
     return cdk::takum3_type::create();
-  }
-  if (lt->name() == cdk::TYPE_BALANCED3 || rt->name() == cdk::TYPE_BALANCED3) {
+
+  if (lt->name() == cdk::TYPE_BALANCED3 || rt->name() == cdk::TYPE_BALANCED3)
     return cdk::balanced3_type::create();
-  }
+
   return lt;
 }
 
@@ -35,12 +39,14 @@ static int pointer_step_size(std::shared_ptr<cdk::basic_type> type) {
 }
 
 void p6::postfix_writer::scan_defined_functions(cdk::basic_node *node) {
-  if (!node) return;
-  if (auto fdef = dynamic_cast<p6::function_definition_node*>(node)) {
-    std::string name = fdef->name();
-    if (name == "p6") name = "_main";
-    _definedFunctions.insert(name);
-  } else if (auto seq = dynamic_cast<cdk::sequence_node*>(node)) {
+  if (!node)
+    return;
+  if (auto fdef = dynamic_cast<p6::function_definition_node *>(node)) {
+    std::string id = fdef->name();
+    if (id == "p6")
+      id = "_main";
+    _definedFunctions.insert(id);
+  } else if (auto seq = dynamic_cast<cdk::sequence_node *>(node)) {
     for (size_t i = 0; i < seq->size(); i++) {
       scan_defined_functions(seq->node(i));
     }
@@ -51,12 +57,24 @@ void p6::postfix_writer::emit_comparison(int op, std::shared_ptr<cdk::basic_type
   if (operand_type->name() == cdk::TYPE_BALANCED3) {
     std::string func;
     switch (op) {
-      case 'E': func = "balanced3_eq"; break;
-      case 'N': func = "balanced3_ne"; break;
-      case 'L': func = "balanced3_lt"; break;
-      case 'G': func = "balanced3_gt"; break;
-      case 'l': func = "balanced3_le"; break;
-      case 'g': func = "balanced3_ge"; break;
+    case 'E':
+      func = "balanced3_eq";
+      break;
+    case 'N':
+      func = "balanced3_ne";
+      break;
+    case 'L':
+      func = "balanced3_lt";
+      break;
+    case 'G':
+      func = "balanced3_gt";
+      break;
+    case 'l':
+      func = "balanced3_le";
+      break;
+    case 'g':
+      func = "balanced3_ge";
+      break;
     }
     _pf.SWAP64();
     _pf.CALL(func);
@@ -65,12 +83,24 @@ void p6::postfix_writer::emit_comparison(int op, std::shared_ptr<cdk::basic_type
   } else if (operand_type->name() == cdk::TYPE_TAKUM3) {
     std::string func;
     switch (op) {
-      case 'E': func = "takum3_eq"; break;
-      case 'N': func = "takum3_ne"; break;
-      case 'L': func = "takum3_lt"; break;
-      case 'G': func = "takum3_gt"; break;
-      case 'l': func = "takum3_le"; break;
-      case 'g': func = "takum3_ge"; break;
+    case 'E':
+      func = "takum3_eq";
+      break;
+    case 'N':
+      func = "takum3_ne";
+      break;
+    case 'L':
+      func = "takum3_lt";
+      break;
+    case 'G':
+      func = "takum3_gt";
+      break;
+    case 'l':
+      func = "takum3_le";
+      break;
+    case 'g':
+      func = "takum3_ge";
+      break;
     }
     _pf.SWAP128();
     _pf.CALL(func);
@@ -78,28 +108,43 @@ void p6::postfix_writer::emit_comparison(int op, std::shared_ptr<cdk::basic_type
     _pf.LDFVAL64I();
   } else {
     switch (op) {
-      case 'E': _pf.EQ(); break;
-      case 'N': _pf.NE(); break;
-      case 'L': _pf.LT(); break;
-      case 'G': _pf.GT(); break;
-      case 'l': _pf.LE(); break;
-      case 'g': _pf.GE(); break;
+    case 'E':
+      _pf.EQ();
+      break;
+    case 'N':
+      _pf.NE();
+      break;
+    case 'L':
+      _pf.LT();
+      break;
+    case 'G':
+      _pf.GT();
+      break;
+    case 'l':
+      _pf.LE();
+      break;
+    case 'g':
+      _pf.GE();
+      break;
     }
     _pf.I2B();
   }
 }
 
-void p6::postfix_writer::emit_static_initializer(cdk::expression_node *init, std::shared_ptr<cdk::basic_type> type, bool sign_neg) {
-  if (auto node = dynamic_cast<cdk::unary_minus_node*>(init)) {
+void p6::postfix_writer::emit_static_initializer(cdk::expression_node *init,
+                                                 std::shared_ptr<cdk::basic_type> type,
+                                                 bool sign_neg) {
+  // Handle Unary
+  if (auto node = dynamic_cast<cdk::unary_minus_node *>(init)) {
     emit_static_initializer(node->argument(), type, !sign_neg);
     return;
   }
-  if (auto node = dynamic_cast<cdk::unary_plus_node*>(init)) {
+  if (auto node = dynamic_cast<cdk::unary_plus_node *>(init)) {
     emit_static_initializer(node->argument(), type, sign_neg);
     return;
   }
 
-  if (auto node = dynamic_cast<cdk::balanced3_node*>(init)) {
+  if (auto node = dynamic_cast<cdk::balanced3_node *>(init)) {
     cdk::treg_value val = node->value();
     if (sign_neg) {
       cdk::treg_value dst;
@@ -113,7 +158,7 @@ void p6::postfix_writer::emit_static_initializer(cdk::expression_node *init, std
       cdk::treg_alu::load_takum3_from_balanced3(tk, val);
       _pf.STAKUM3(tk);
     }
-  } else if (auto node = dynamic_cast<cdk::takum3_node*>(init)) {
+  } else if (auto node = dynamic_cast<cdk::takum3_node *>(init)) {
     cdk::treg_value val = node->value();
     if (sign_neg) {
       cdk::treg_value dst;
@@ -121,13 +166,13 @@ void p6::postfix_writer::emit_static_initializer(cdk::expression_node *init, std
       val = dst;
     }
     _pf.STAKUM3(val);
-  } else if (dynamic_cast<p6::nullptr_node*>(init)) {
+  } else if (dynamic_cast<p6::nullptr_node *>(init)) {
     _pf.SINT(0);
-  } else if (auto node = dynamic_cast<cdk::string_node*>(init)) {
-    int lbl;
+  } else if (auto node = dynamic_cast<cdk::string_node *>(init)) {
+    int lbl = ++_lbl;
     _pf.RODATA();
     _pf.ALIGN();
-    _pf.LABEL(mklbl(lbl = ++_lbl));
+    _pf.LABEL(mklbl(lbl));
     _pf.SSTRING(node->value());
     _pf.DATA();
     _pf.ALIGN();
@@ -139,78 +184,77 @@ void p6::postfix_writer::emit_static_initializer(cdk::expression_node *init, std
 // Standard visitors
 //---------------------------------------------------------------------------
 
-void p6::postfix_writer::do_nil_node(cdk::nil_node * const node, int lvl) {
-  // NOP
+void p6::postfix_writer::do_nil_node(cdk::nil_node *const node, int lvl) {
+  // EMPTY
 }
 
-void p6::postfix_writer::do_data_node(cdk::data_node * const node, int lvl) {
-  // NOP
+void p6::postfix_writer::do_data_node(cdk::data_node *const node, int lvl) {
+  // EMPTY
 }
 
-void p6::postfix_writer::do_double_node(cdk::double_node * const node, int lvl) {
-  // EMPTY: P6 real literals use cdk::takum3_node.
+void p6::postfix_writer::do_double_node(cdk::double_node *const node, int lvl) {
+  // EMPTY
 }
 
-void p6::postfix_writer::do_not_node(cdk::not_node * const node, int lvl) {
+void p6::postfix_writer::do_not_node(cdk::not_node *const node, int lvl) {
   ASSERT_SAFE_EXPRESSIONS;
   if (_allocating_offsets) {
     node->argument()->accept(this, lvl);
     return;
   }
+
   node->argument()->accept(this, lvl);
-  promote(node->argument()->type(), cdk::balanced3_type::create());
   _pf.KNOT();
 }
 
-void p6::postfix_writer::do_and_node(cdk::and_node * const node, int lvl) {
+void p6::postfix_writer::do_and_node(cdk::and_node *const node, int lvl) {
   ASSERT_SAFE_EXPRESSIONS;
   if (_allocating_offsets) {
     node->left()->accept(this, lvl);
     node->right()->accept(this, lvl);
     return;
   }
+
   int lbl_end = ++_lbl;
   node->left()->accept(this, lvl);
-  promote(node->left()->type(), cdk::balanced3_type::create());
   _pf.DUP64();
   _pf.B2I();
   _pf.INT(0);
   _pf.JLT(mklbl(lbl_end)); // if < 0 (False), short-circuit jump to end
 
   node->right()->accept(this, lvl);
-  promote(node->right()->type(), cdk::balanced3_type::create());
   _pf.KAND();
   _pf.LABEL(mklbl(lbl_end));
 }
 
-void p6::postfix_writer::do_or_node(cdk::or_node * const node, int lvl) {
+void p6::postfix_writer::do_or_node(cdk::or_node *const node, int lvl) {
   ASSERT_SAFE_EXPRESSIONS;
   if (_allocating_offsets) {
     node->left()->accept(this, lvl);
     node->right()->accept(this, lvl);
     return;
   }
+
   int lbl_end = ++_lbl;
   node->left()->accept(this, lvl);
-  promote(node->left()->type(), cdk::balanced3_type::create());
   _pf.DUP64();
   _pf.B2I();
   _pf.INT(0);
   _pf.JGT(mklbl(lbl_end)); // if > 0 (True), short-circuit jump to end
 
   node->right()->accept(this, lvl);
-  promote(node->right()->type(), cdk::balanced3_type::create());
   _pf.KOR();
   _pf.LABEL(mklbl(lbl_end));
 }
 
 //---------------------------------------------------------------------------
 
-void p6::postfix_writer::do_sequence_node(cdk::sequence_node * const node, int lvl) {
+void p6::postfix_writer::do_sequence_node(cdk::sequence_node *const node, int lvl) {
   if (!_scanned_functions) {
     _scanned_functions = true;
     scan_defined_functions(node);
   }
+
   for (size_t i = 0; i < node->size(); i++) {
     node->node(i)->accept(this, lvl);
   }
@@ -218,34 +262,36 @@ void p6::postfix_writer::do_sequence_node(cdk::sequence_node * const node, int l
 
 //---------------------------------------------------------------------------
 
-void p6::postfix_writer::do_integer_node(cdk::integer_node * const node, int lvl) {
-  // EMPTY: P6 integer literals use cdk::balanced3_node.
+void p6::postfix_writer::do_integer_node(cdk::integer_node *const node, int lvl) {
+  // EMPTY
 }
 
-void p6::postfix_writer::do_string_node(cdk::string_node * const node, int lvl) {
-  if (_allocating_offsets) return;
-  int lbl1;
+void p6::postfix_writer::do_string_node(cdk::string_node *const node, int lvl) {
+  if (_allocating_offsets)
+    return;
 
   /* generate the string */
-  _pf.RODATA(); // strings are DATA readonly
-  _pf.ALIGN(); // make sure we are aligned
-  _pf.LABEL(mklbl(lbl1 = ++_lbl)); // give the string a name
-  _pf.SSTRING(node->value()); // output string characters
+  int lbl1 = ++_lbl;
+  _pf.RODATA();
+  _pf.ALIGN();
+  _pf.LABEL(mklbl(lbl1));
+  _pf.SSTRING(node->value());
 
-  /* leave the address on the stack */
-  _pf.TEXT(); // return to the TEXT segment
-  _pf.ADDR(mklbl(lbl1)); // the string to be printed
+  /* Add String addr to stack */
+  _pf.TEXT();
+  _pf.ADDR(mklbl(lbl1));
 }
 
 //---------------------------------------------------------------------------
 
-void p6::postfix_writer::do_unary_minus_node(cdk::unary_minus_node * const node, int lvl) {
+void p6::postfix_writer::do_unary_minus_node(cdk::unary_minus_node *const node, int lvl) {
   ASSERT_SAFE_EXPRESSIONS;
   if (_allocating_offsets) {
     node->argument()->accept(this, lvl);
     return;
   }
-  node->argument()->accept(this, lvl); // determine the value
+
+  node->argument()->accept(this, lvl);
   auto type = node->argument()->type();
   if (type->name() == cdk::TYPE_BALANCED3) {
     _pf.BNEG();
@@ -254,46 +300,51 @@ void p6::postfix_writer::do_unary_minus_node(cdk::unary_minus_node * const node,
   }
 }
 
-void p6::postfix_writer::do_unary_plus_node(cdk::unary_plus_node * const node, int lvl) {
+void p6::postfix_writer::do_unary_plus_node(cdk::unary_plus_node *const node, int lvl) {
   ASSERT_SAFE_EXPRESSIONS;
   if (_allocating_offsets) {
     node->argument()->accept(this, lvl);
     return;
   }
-  node->argument()->accept(this, lvl); // determine the value
+
+  node->argument()->accept(this, lvl);
 }
 
 //---------------------------------------------------------------------------
 
-void p6::postfix_writer::do_add_node(cdk::add_node * const node, int lvl) {
+void p6::postfix_writer::do_add_node(cdk::add_node *const node, int lvl) {
   ASSERT_SAFE_EXPRESSIONS;
   if (_allocating_offsets) {
     node->left()->accept(this, lvl);
     node->right()->accept(this, lvl);
     return;
   }
+
   auto lt = node->left()->type();
   auto rt = node->right()->type();
 
   if (lt->name() == cdk::TYPE_POINTER) {
+    // Pointer + Integer
     node->left()->accept(this, lvl);
     node->right()->accept(this, lvl);
-    if (rt->name() == cdk::TYPE_BALANCED3) {
+    if (rt->name() == cdk::TYPE_BALANCED3)
       _pf.B2I();
-    }
+
     _pf.INT(pointer_step_size(lt));
     _pf.MUL();
     _pf.ADD();
   } else if (rt->name() == cdk::TYPE_POINTER) {
+    // Integer + Pointer
     node->left()->accept(this, lvl);
-    if (lt->name() == cdk::TYPE_BALANCED3) {
+    if (lt->name() == cdk::TYPE_BALANCED3)
       _pf.B2I();
-    }
+
     _pf.INT(pointer_step_size(rt));
     _pf.MUL();
     node->right()->accept(this, lvl);
     _pf.ADD();
   } else {
+    // Numeric + Numeric
     auto common = get_common_type(lt, rt);
     node->left()->accept(this, lvl);
     promote(lt, common);
@@ -307,17 +358,19 @@ void p6::postfix_writer::do_add_node(cdk::add_node * const node, int lvl) {
   }
 }
 
-void p6::postfix_writer::do_sub_node(cdk::sub_node * const node, int lvl) {
+void p6::postfix_writer::do_sub_node(cdk::sub_node *const node, int lvl) {
   ASSERT_SAFE_EXPRESSIONS;
   if (_allocating_offsets) {
     node->left()->accept(this, lvl);
     node->right()->accept(this, lvl);
     return;
   }
+
   auto lt = node->left()->type();
   auto rt = node->right()->type();
 
   if (lt->name() == cdk::TYPE_POINTER && rt->name() == cdk::TYPE_POINTER) {
+    // Pointer - Pointer
     node->left()->accept(this, lvl);
     node->right()->accept(this, lvl);
     _pf.SUB();
@@ -325,6 +378,7 @@ void p6::postfix_writer::do_sub_node(cdk::sub_node * const node, int lvl) {
     _pf.DIV();
     _pf.I2B();
   } else if (lt->name() == cdk::TYPE_POINTER) {
+    // Pointer - Integer
     node->left()->accept(this, lvl);
     node->right()->accept(this, lvl);
     if (rt->name() == cdk::TYPE_BALANCED3) {
@@ -347,15 +401,17 @@ void p6::postfix_writer::do_sub_node(cdk::sub_node * const node, int lvl) {
   }
 }
 
-void p6::postfix_writer::do_mul_node(cdk::mul_node * const node, int lvl) {
+void p6::postfix_writer::do_mul_node(cdk::mul_node *const node, int lvl) {
   ASSERT_SAFE_EXPRESSIONS;
   if (_allocating_offsets) {
     node->left()->accept(this, lvl);
     node->right()->accept(this, lvl);
     return;
   }
+
   auto lt = node->left()->type();
   auto rt = node->right()->type();
+
   auto common = get_common_type(lt, rt);
   node->left()->accept(this, lvl);
   promote(lt, common);
@@ -368,15 +424,17 @@ void p6::postfix_writer::do_mul_node(cdk::mul_node * const node, int lvl) {
   }
 }
 
-void p6::postfix_writer::do_div_node(cdk::div_node * const node, int lvl) {
+void p6::postfix_writer::do_div_node(cdk::div_node *const node, int lvl) {
   ASSERT_SAFE_EXPRESSIONS;
   if (_allocating_offsets) {
     node->left()->accept(this, lvl);
     node->right()->accept(this, lvl);
     return;
   }
+
   auto lt = node->left()->type();
   auto rt = node->right()->type();
+
   auto common = get_common_type(lt, rt);
   node->left()->accept(this, lvl);
   promote(lt, common);
@@ -389,43 +447,30 @@ void p6::postfix_writer::do_div_node(cdk::div_node * const node, int lvl) {
   }
 }
 
-void p6::postfix_writer::do_mod_node(cdk::mod_node * const node, int lvl) {
+void p6::postfix_writer::do_mod_node(cdk::mod_node *const node, int lvl) {
   ASSERT_SAFE_EXPRESSIONS;
   if (_allocating_offsets) {
     node->left()->accept(this, lvl);
     node->right()->accept(this, lvl);
     return;
   }
-  auto lt = node->left()->type();
-  auto rt = node->right()->type();
-  auto common = get_common_type(lt, rt);
+
   node->left()->accept(this, lvl);
-  promote(lt, common);
-  if (common->name() == cdk::TYPE_BALANCED3) {
-    _pf.B2I();
-  }
   node->right()->accept(this, lvl);
-  promote(rt, common);
-  if (common->name() == cdk::TYPE_BALANCED3) {
-    _pf.B2I();
-  }
-
-  _pf.MOD();
-
-  if (common->name() == cdk::TYPE_BALANCED3) {
-    _pf.I2B();
-  }
+  _pf.BMOD();
 }
 
-void p6::postfix_writer::do_lt_node(cdk::lt_node * const node, int lvl) {
+void p6::postfix_writer::do_lt_node(cdk::lt_node *const node, int lvl) {
   ASSERT_SAFE_EXPRESSIONS;
   if (_allocating_offsets) {
     node->left()->accept(this, lvl);
     node->right()->accept(this, lvl);
     return;
   }
+
   auto lt = node->left()->type();
   auto rt = node->right()->type();
+
   auto common = get_common_type(lt, rt);
   node->left()->accept(this, lvl);
   promote(lt, common);
@@ -434,15 +479,17 @@ void p6::postfix_writer::do_lt_node(cdk::lt_node * const node, int lvl) {
   emit_comparison('L', common);
 }
 
-void p6::postfix_writer::do_le_node(cdk::le_node * const node, int lvl) {
+void p6::postfix_writer::do_le_node(cdk::le_node *const node, int lvl) {
   ASSERT_SAFE_EXPRESSIONS;
   if (_allocating_offsets) {
     node->left()->accept(this, lvl);
     node->right()->accept(this, lvl);
     return;
   }
+
   auto lt = node->left()->type();
   auto rt = node->right()->type();
+
   auto common = get_common_type(lt, rt);
   node->left()->accept(this, lvl);
   promote(lt, common);
@@ -451,15 +498,17 @@ void p6::postfix_writer::do_le_node(cdk::le_node * const node, int lvl) {
   emit_comparison('l', common);
 }
 
-void p6::postfix_writer::do_ge_node(cdk::ge_node * const node, int lvl) {
+void p6::postfix_writer::do_ge_node(cdk::ge_node *const node, int lvl) {
   ASSERT_SAFE_EXPRESSIONS;
   if (_allocating_offsets) {
     node->left()->accept(this, lvl);
     node->right()->accept(this, lvl);
     return;
   }
+
   auto lt = node->left()->type();
   auto rt = node->right()->type();
+
   auto common = get_common_type(lt, rt);
   node->left()->accept(this, lvl);
   promote(lt, common);
@@ -468,15 +517,17 @@ void p6::postfix_writer::do_ge_node(cdk::ge_node * const node, int lvl) {
   emit_comparison('g', common);
 }
 
-void p6::postfix_writer::do_gt_node(cdk::gt_node * const node, int lvl) {
+void p6::postfix_writer::do_gt_node(cdk::gt_node *const node, int lvl) {
   ASSERT_SAFE_EXPRESSIONS;
   if (_allocating_offsets) {
     node->left()->accept(this, lvl);
     node->right()->accept(this, lvl);
     return;
   }
+
   auto lt = node->left()->type();
   auto rt = node->right()->type();
+
   auto common = get_common_type(lt, rt);
   node->left()->accept(this, lvl);
   promote(lt, common);
@@ -485,15 +536,17 @@ void p6::postfix_writer::do_gt_node(cdk::gt_node * const node, int lvl) {
   emit_comparison('G', common);
 }
 
-void p6::postfix_writer::do_ne_node(cdk::ne_node * const node, int lvl) {
+void p6::postfix_writer::do_ne_node(cdk::ne_node *const node, int lvl) {
   ASSERT_SAFE_EXPRESSIONS;
   if (_allocating_offsets) {
     node->left()->accept(this, lvl);
     node->right()->accept(this, lvl);
     return;
   }
+
   auto lt = node->left()->type();
   auto rt = node->right()->type();
+
   auto common = get_common_type(lt, rt);
   node->left()->accept(this, lvl);
   promote(lt, common);
@@ -502,15 +555,17 @@ void p6::postfix_writer::do_ne_node(cdk::ne_node * const node, int lvl) {
   emit_comparison('N', common);
 }
 
-void p6::postfix_writer::do_eq_node(cdk::eq_node * const node, int lvl) {
+void p6::postfix_writer::do_eq_node(cdk::eq_node *const node, int lvl) {
   ASSERT_SAFE_EXPRESSIONS;
   if (_allocating_offsets) {
     node->left()->accept(this, lvl);
     node->right()->accept(this, lvl);
     return;
   }
+
   auto lt = node->left()->type();
   auto rt = node->right()->type();
+
   auto common = get_common_type(lt, rt);
   node->left()->accept(this, lvl);
   promote(lt, common);
@@ -521,9 +576,11 @@ void p6::postfix_writer::do_eq_node(cdk::eq_node * const node, int lvl) {
 
 //---------------------------------------------------------------------------
 
-void p6::postfix_writer::do_variable_node(cdk::variable_node * const node, int lvl) {
+void p6::postfix_writer::do_variable_node(cdk::variable_node *const node, int lvl) {
   ASSERT_SAFE_EXPRESSIONS;
-  if (_allocating_offsets) return;
+  if (_allocating_offsets)
+    return;
+
   auto sym = _symtab.find(node->name());
   if (sym->is_global()) {
     _pf.ADDR(sym->name());
@@ -532,12 +589,13 @@ void p6::postfix_writer::do_variable_node(cdk::variable_node * const node, int l
   }
 }
 
-void p6::postfix_writer::do_rvalue_node(cdk::rvalue_node * const node, int lvl) {
+void p6::postfix_writer::do_rvalue_node(cdk::rvalue_node *const node, int lvl) {
   ASSERT_SAFE_EXPRESSIONS;
   if (_allocating_offsets) {
     node->lvalue()->accept(this, lvl);
     return;
   }
+
   node->lvalue()->accept(this, lvl);
   int size = node->type()->size();
   if (size == 4) {
@@ -549,13 +607,14 @@ void p6::postfix_writer::do_rvalue_node(cdk::rvalue_node * const node, int lvl) 
   }
 }
 
-void p6::postfix_writer::do_assignment_node(cdk::assignment_node * const node, int lvl) {
+void p6::postfix_writer::do_assignment_node(cdk::assignment_node *const node, int lvl) {
   ASSERT_SAFE_EXPRESSIONS;
   if (_allocating_offsets) {
     node->lvalue()->accept(this, lvl);
     node->rvalue()->accept(this, lvl);
     return;
   }
+
   node->rvalue()->accept(this, lvl);
   promote(node->rvalue()->type(), node->lvalue()->type());
   int size = node->lvalue()->type()->size();
@@ -566,6 +625,7 @@ void p6::postfix_writer::do_assignment_node(cdk::assignment_node * const node, i
   } else if (size == 16) {
     _pf.DUP128();
   }
+
   node->lvalue()->accept(this, lvl);
   if (size == 4) {
     _pf.STINT();
@@ -578,19 +638,14 @@ void p6::postfix_writer::do_assignment_node(cdk::assignment_node * const node, i
 
 //---------------------------------------------------------------------------
 
-void p6::postfix_writer::do_program_node(p6::program_node * const node, int lvl) {
-  if (!_scanned_functions) {
-    _scanned_functions = true;
-    scan_defined_functions(node);
-  }
+void p6::postfix_writer::do_program_node(p6::program_node *const node, int lvl) {
   _inMainProgram = true;
-  // Run pre-pass on main function body to allocate local variables
   _allocating_offsets = true;
   _local_offset = 0;
-  _currentReturnType = cdk::balanced3_type::create(); // main returns P6 int (balanced3)
-  if (node->statements()) {
+  _currentReturnType = cdk::balanced3_type::create();
+  if (node->statements())
     node->statements()->accept(this, lvl);
-  }
+
   _allocating_offsets = false;
 
   // generate the main function (RTS mandates that its name be "_main")
@@ -600,9 +655,8 @@ void p6::postfix_writer::do_program_node(p6::program_node * const node, int lvl)
   _pf.LABEL("_main");
   _pf.ENTER(-_local_offset);
 
-  if (node->statements()) {
+  if (node->statements())
     node->statements()->accept(this, lvl);
-  }
 
   // end the main function
   _pf.INT(0);
@@ -642,27 +696,29 @@ void p6::postfix_writer::do_program_node(p6::program_node * const node, int lvl)
 
 //---------------------------------------------------------------------------
 
-void p6::postfix_writer::do_evaluation_node(p6::evaluation_node * const node, int lvl) {
+void p6::postfix_writer::do_evaluation_node(p6::evaluation_node *const node, int lvl) {
   ASSERT_SAFE_EXPRESSIONS;
   if (_allocating_offsets) {
     node->argument()->accept(this, lvl);
     return;
   }
-  node->argument()->accept(this, lvl); // determine the value
+
+  node->argument()->accept(this, lvl);
   _pf.TRASH(node->argument()->type()->size());
 }
 
-void p6::postfix_writer::do_print_node(p6::print_node * const node, int lvl) {
+void p6::postfix_writer::do_print_node(p6::print_node *const node, int lvl) {
   ASSERT_SAFE_EXPRESSIONS;
   if (_allocating_offsets) {
-    if (node->arguments()) {
+    if (node->arguments())
       node->arguments()->accept(this, lvl);
-    }
+
     return;
   }
+
   if (node->arguments()) {
     for (size_t i = 0; i < node->arguments()->size(); i++) {
-      auto expr = dynamic_cast<cdk::expression_node*>(node->arguments()->node(i));
+      auto expr = dynamic_cast<cdk::expression_node *>(node->arguments()->node(i));
       expr->accept(this, lvl);
       if (expr->is_typed(cdk::TYPE_STRING)) {
         _pf.CALL("prints");
@@ -677,15 +733,17 @@ void p6::postfix_writer::do_print_node(p6::print_node * const node, int lvl) {
     }
   }
   if (node->newline()) {
-    _pf.CALL("println"); // print a newline
+    _pf.CALL("println");
   }
 }
 
 //---------------------------------------------------------------------------
 
-void p6::postfix_writer::do_input_node(p6::input_node * const node, int lvl) {
+void p6::postfix_writer::do_input_node(p6::input_node *const node, int lvl) {
   ASSERT_SAFE_EXPRESSIONS;
-  if (_allocating_offsets) return;
+  if (_allocating_offsets)
+    return;
+
   if (node->is_typed(cdk::TYPE_BALANCED3)) {
     _pf.CALL("balanced3_read");
     _pf.LDFVAL64I();
@@ -700,7 +758,7 @@ void p6::postfix_writer::do_input_node(p6::input_node * const node, int lvl) {
 
 //---------------------------------------------------------------------------
 
-void p6::postfix_writer::do_while_node(p6::while_node * const node, int lvl) {
+void p6::postfix_writer::do_while_node(p6::while_node *const node, int lvl) {
   ASSERT_SAFE_EXPRESSIONS;
   if (_allocating_offsets) {
     _loopNextLabels.push_back("");
@@ -711,6 +769,7 @@ void p6::postfix_writer::do_while_node(p6::while_node * const node, int lvl) {
     _loopStopLabels.pop_back();
     return;
   }
+
   int lbl_step = ++_lbl;
   int lbl_end = ++_lbl;
 
@@ -738,13 +797,14 @@ void p6::postfix_writer::do_while_node(p6::while_node * const node, int lvl) {
 
 //---------------------------------------------------------------------------
 
-void p6::postfix_writer::do_if_node(p6::if_node * const node, int lvl) {
+void p6::postfix_writer::do_if_node(p6::if_node *const node, int lvl) {
   ASSERT_SAFE_EXPRESSIONS;
   if (_allocating_offsets) {
     node->condition()->accept(this, lvl);
     node->block()->accept(this, lvl);
     return;
   }
+
   int lbl_end = ++_lbl;
   node->condition()->accept(this, lvl);
   if (node->condition()->is_typed(cdk::TYPE_BALANCED3)) {
@@ -760,7 +820,7 @@ void p6::postfix_writer::do_if_node(p6::if_node * const node, int lvl) {
 
 //---------------------------------------------------------------------------
 
-void p6::postfix_writer::do_if_else_node(p6::if_else_node * const node, int lvl) {
+void p6::postfix_writer::do_if_else_node(p6::if_else_node *const node, int lvl) {
   ASSERT_SAFE_EXPRESSIONS;
   if (_allocating_offsets) {
     node->condition()->accept(this, lvl);
@@ -768,8 +828,10 @@ void p6::postfix_writer::do_if_else_node(p6::if_else_node * const node, int lvl)
     node->elseblock()->accept(this, lvl);
     return;
   }
+
   int lbl_else = ++_lbl;
   int lbl_end = ++_lbl;
+
   node->condition()->accept(this, lvl);
   if (node->condition()->is_typed(cdk::TYPE_BALANCED3)) {
     _pf.B2I();
@@ -787,25 +849,26 @@ void p6::postfix_writer::do_if_else_node(p6::if_else_node * const node, int lvl)
 
 //---------------------------------------------------------------------------
 
-void p6::postfix_writer::do_block_node(p6::block_node * const node, int lvl) {
+void p6::postfix_writer::do_block_node(p6::block_node *const node, int lvl) {
   _symtab.push();
-  if (node->declarations()) {
+  if (node->declarations())
     node->declarations()->accept(this, lvl);
-  }
-  if (node->instructions()) {
+
+  if (node->instructions())
     node->instructions()->accept(this, lvl);
-  }
+
   _symtab.pop();
 }
 
-void p6::postfix_writer::do_return_node(p6::return_node * const node, int lvl) {
+void p6::postfix_writer::do_return_node(p6::return_node *const node, int lvl) {
   ASSERT_SAFE_EXPRESSIONS;
   if (_allocating_offsets) {
-    if (node->retval()) {
+    if (node->retval())
       node->retval()->accept(this, lvl);
-    }
+
     return;
   }
+
   if (node->retval()) {
     node->retval()->accept(this, lvl);
     promote(node->retval()->type(), _currentReturnType);
@@ -831,59 +894,63 @@ void p6::postfix_writer::do_return_node(p6::return_node * const node, int lvl) {
   _pf.RET();
 }
 
-void p6::postfix_writer::do_stop_node(p6::stop_node * const node, int lvl) {
-  if (_allocating_offsets) return;
+void p6::postfix_writer::do_stop_node(p6::stop_node *const node, int lvl) {
+  if (_allocating_offsets)
+    return;
+
   int index = _loopStopLabels.size() - node->level();
   _pf.JMP(_loopStopLabels[index]);
 }
 
-void p6::postfix_writer::do_next_node(p6::next_node * const node, int lvl) {
-  if (_allocating_offsets) return;
+void p6::postfix_writer::do_next_node(p6::next_node *const node, int lvl) {
+  if (_allocating_offsets)
+    return;
+
   int index = _loopNextLabels.size() - node->level();
   _pf.JMP(_loopNextLabels[index]);
 }
 
 //---------------------------------------------------------------------------
 
-void p6::postfix_writer::do_nullptr_node(p6::nullptr_node * const node, int lvl) {
+void p6::postfix_writer::do_nullptr_node(p6::nullptr_node *const node, int lvl) {
   ASSERT_SAFE_EXPRESSIONS;
-  if (_allocating_offsets) return;
+  if (_allocating_offsets)
+    return;
+
   _pf.INT(0);
 }
 
-void p6::postfix_writer::do_address_of_node(p6::address_of_node * const node, int lvl) {
+void p6::postfix_writer::do_address_of_node(p6::address_of_node *const node, int lvl) {
   ASSERT_SAFE_EXPRESSIONS;
   node->lvalue()->accept(this, lvl);
 }
 
-void p6::postfix_writer::do_index_node(p6::index_node * const node, int lvl) {
+void p6::postfix_writer::do_index_node(p6::index_node *const node, int lvl) {
   ASSERT_SAFE_EXPRESSIONS;
   if (_allocating_offsets) {
     node->base()->accept(this, lvl);
     node->index()->accept(this, lvl);
     return;
   }
+
   node->base()->accept(this, lvl);
   node->index()->accept(this, lvl);
-  if (node->index()->is_typed(cdk::TYPE_BALANCED3)) {
-    _pf.B2I();
-  }
+  _pf.B2I();
   auto ref = std::dynamic_pointer_cast<cdk::reference_type>(node->base()->type());
   _pf.INT(ref->referenced()->size());
   _pf.MUL();
   _pf.ADD();
 }
 
-void p6::postfix_writer::do_stack_alloc_node(p6::stack_alloc_node * const node, int lvl) {
+void p6::postfix_writer::do_stack_alloc_node(p6::stack_alloc_node *const node, int lvl) {
   ASSERT_SAFE_EXPRESSIONS;
   if (_allocating_offsets) {
     node->argument()->accept(this, lvl);
     return;
   }
+
   node->argument()->accept(this, lvl);
-  if (node->argument()->is_typed(cdk::TYPE_BALANCED3)) {
-    _pf.B2I();
-  }
+  _pf.B2I();
   auto ref = std::dynamic_pointer_cast<cdk::reference_type>(node->type());
   _pf.INT(ref->referenced()->size());
   _pf.MUL();
@@ -891,27 +958,30 @@ void p6::postfix_writer::do_stack_alloc_node(p6::stack_alloc_node * const node, 
   _pf.SP();
 }
 
-void p6::postfix_writer::do_sizeof_node(p6::sizeof_node * const node, int lvl) {
+void p6::postfix_writer::do_sizeof_node(p6::sizeof_node *const node, int lvl) {
   ASSERT_SAFE_EXPRESSIONS;
-  if (_allocating_offsets) return;
+  if (_allocating_offsets)
+    return;
+
   int size = node->argument()->type()->size();
   _pf.INT(size);
   _pf.I2B();
 }
 
-void p6::postfix_writer::do_function_call_node(p6::function_call_node * const node, int lvl) {
+void p6::postfix_writer::do_function_call_node(p6::function_call_node *const node, int lvl) {
   ASSERT_SAFE_EXPRESSIONS;
   if (_allocating_offsets) {
-    if (node->arguments()) {
+    if (node->arguments())
       node->arguments()->accept(this, lvl);
-    }
+
     return;
   }
 
-  std::string name = node->name();
-  if (name == "p6") name = "_main";
+  std::string id = node->name();
+  if (id == "p6")
+    id = "_main";
 
-  auto sym = _symtab.find(name);
+  auto sym = _symtab.find(id);
   auto func_type = std::dynamic_pointer_cast<cdk::functional_type>(sym->type());
   bool is_extern = (sym && sym->qualifier() == tEXTERN);
 
@@ -925,7 +995,7 @@ void p6::postfix_writer::do_function_call_node(p6::function_call_node * const no
   int K = 0;
   if (node->arguments()) {
     for (int i = static_cast<int>(node->arguments()->size()) - 1; i >= 0; i--) {
-      auto arg = dynamic_cast<cdk::expression_node*>(node->arguments()->node(i));
+      auto arg = dynamic_cast<cdk::expression_node *>(node->arguments()->node(i));
       arg->accept(this, lvl);
       promote(arg->type(), func_type->input(i));
       if (is_extern) {
@@ -950,7 +1020,7 @@ void p6::postfix_writer::do_function_call_node(p6::function_call_node * const no
     _pf.ADD();
   }
 
-  _pf.CALL(name);
+  _pf.CALL(id);
 
   if (is_sret) {
     _pf.TRASH(K + 4);
@@ -982,7 +1052,8 @@ void p6::postfix_writer::do_function_call_node(p6::function_call_node * const no
 
 //---------------------------------------------------------------------------
 
-void p6::postfix_writer::do_variable_declaration_node(p6::variable_declaration_node * const node, int lvl) {
+void p6::postfix_writer::do_variable_declaration_node(p6::variable_declaration_node *const node,
+                                                      int lvl) {
   ASSERT_SAFE_EXPRESSIONS;
   auto sym = _symtab.find(node->name());
   if (_allocating_offsets) {
@@ -993,20 +1064,25 @@ void p6::postfix_writer::do_variable_declaration_node(p6::variable_declaration_n
   }
 
   if (sym->is_global()) {
+    if (sym->qualifier() == tFORWARD) {
+      _pf.EXTERN(sym->name());
+      return;
+    }
+
     if (node->initializer()) {
       _pf.DATA();
       _pf.ALIGN();
-      if (sym->qualifier() == tPUBLIC) {
+      if (sym->qualifier() == tPUBLIC)
         _pf.GLOBAL(sym->name(), _pf.OBJ());
-      }
+
       _pf.LABEL(sym->name());
       emit_static_initializer(node->initializer(), sym->type());
     } else {
       _pf.BSS();
       _pf.ALIGN();
-      if (sym->qualifier() == tPUBLIC) {
+      if (sym->qualifier() == tPUBLIC)
         _pf.GLOBAL(sym->name(), _pf.OBJ());
-      }
+
       _pf.LABEL(sym->name());
       _pf.SALLOC(sym->type()->size());
     }
@@ -1028,33 +1104,35 @@ void p6::postfix_writer::do_variable_declaration_node(p6::variable_declaration_n
   }
 }
 
-void p6::postfix_writer::do_function_declaration_node(p6::function_declaration_node * const node, int lvl) {
+void p6::postfix_writer::do_function_declaration_node(p6::function_declaration_node *const node,
+                                                      int lvl) {
   ASSERT_SAFE_EXPRESSIONS;
-  if (_allocating_offsets) return;
-  std::string name = node->name();
-  if (name == "p6") name = "_main";
-  if (_definedFunctions.count(name) == 0) {
-    _pf.EXTERN(name);
-  }
+  if (_allocating_offsets)
+    return;
+
+  std::string id = node->name();
+  if (id == "p6")
+    id = "_main";
+  if (_definedFunctions.count(id) == 0)
+    _pf.EXTERN(id);
 }
 
-void p6::postfix_writer::do_function_definition_node(p6::function_definition_node * const node, int lvl) {
+void p6::postfix_writer::do_function_definition_node(p6::function_definition_node *const node,
+                                                     int lvl) {
   ASSERT_SAFE_EXPRESSIONS;
 
-  std::string name = node->name();
-  if (name == "p6") name = "_main";
-
-  auto sym = _symtab.find(name);
-
-  // Push scope for arguments
-  _symtab.push();
+  std::string id = node->name();
+  if (id == "p6")
+    id = "_main";
 
   // Create and insert parameters into the symbol table, setting their offsets
+  _symtab.push();
   int arg_offset = (node->type()->name() == cdk::TYPE_TAKUM3) ? 12 : 8;
   if (node->params()) {
     for (size_t i = 0; i < node->params()->size(); i++) {
-      auto decl = dynamic_cast<p6::variable_declaration_node*>(node->params()->node(i));
-      auto param_sym = std::make_shared<p6::symbol>(decl->vartype(), decl->name(), arg_offset, false, true, false, 0);
+      auto decl = dynamic_cast<p6::variable_declaration_node *>(node->params()->node(i));
+      auto param_sym = std::make_shared<p6::symbol>(decl->vartype(), decl->name(), arg_offset,
+                                                    false, true, false, 0);
       _symtab.insert(decl->name(), param_sym);
       arg_offset += param_sym->type()->size();
     }
@@ -1062,31 +1140,27 @@ void p6::postfix_writer::do_function_definition_node(p6::function_definition_nod
 
   auto old_return = _currentReturnType;
   _currentReturnType = node->type();
-
-  // Pre-pass local variable allocation
   _allocating_offsets = true;
   _local_offset = 0;
   node->body()->accept(this, lvl);
   _allocating_offsets = false;
 
-  // Generate prologue
   _pf.TEXT();
   _pf.ALIGN();
-  if (node->qualifier() == tPUBLIC) {
-    _pf.GLOBAL(name, _pf.FUNC());
-  }
-  _pf.LABEL(name);
+  if (node->qualifier() == tPUBLIC)
+    _pf.GLOBAL(id, _pf.FUNC());
+  _pf.LABEL(id);
   _pf.ENTER(-_local_offset);
 
   node->body()->accept(this, lvl);
-
   _currentReturnType = old_return;
-
-  // Generate safe epilogue / default return
   if (node->type()->name() == cdk::TYPE_VOID) {
     _pf.LEAVE();
     _pf.RET();
   } else if (node->type()->name() == cdk::TYPE_TAKUM3) {
+    _pf.TAKUM3(cdk::takum3_type::value_type("0.0"));
+    _pf.LOCV(8);
+    _pf.STTAKUM3();
     _pf.LOCV(8);
     _pf.STFVAL32I();
     _pf.LEAVE();
@@ -1097,33 +1171,34 @@ void p6::postfix_writer::do_function_definition_node(p6::function_definition_nod
       _pf.INT(0);
       _pf.STFVAL32I();
     } else if (size == 8) {
-      _pf.INT(0);
-      _pf.INT(0);
+      _pf.BALANCED3(cdk::balanced3_type::value_type(0));
       _pf.STFVAL64I();
     }
     _pf.LEAVE();
     _pf.RET();
   }
 
-  _symtab.pop(); // Pop arguments scope
+  _symtab.pop();
 }
 
 //---------------------------------------------------------------------------
 
-void p6::postfix_writer::do_balanced3_node(cdk::balanced3_node * const node, int lvl) {
+void p6::postfix_writer::do_balanced3_node(cdk::balanced3_node *const node, int lvl) {
   ASSERT_SAFE_EXPRESSIONS;
-  if (_allocating_offsets) return;
+  if (_allocating_offsets)
+    return;
+
   _pf.BALANCED3(node->value());
 }
 
-void p6::postfix_writer::do_takum3_node(cdk::takum3_node * const node, int lvl) {
+void p6::postfix_writer::do_takum3_node(cdk::takum3_node *const node, int lvl) {
   ASSERT_SAFE_EXPRESSIONS;
-  if (_allocating_offsets) return;
+  if (_allocating_offsets)
+    return;
+
   _pf.TAKUM3(node->value());
 }
 
-void p6::postfix_writer::do_posit3_node(cdk::posit3_node * const node, int lvl) {
-  ASSERT_SAFE_EXPRESSIONS;
-  if (_allocating_offsets) return;
-  _pf.POSIT3(node->value());
+void p6::postfix_writer::do_posit3_node(cdk::posit3_node *const node, int lvl) {
+  // EMPTY
 }

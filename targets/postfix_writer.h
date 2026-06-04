@@ -2,18 +2,18 @@
 
 #include "targets/type_checker.h"
 
+#include <cdk/ast/basic_node.h>
+#include <cdk/emitters/basic_postfix_emitter.h>
 #include <sstream>
 #include <unordered_map>
 #include <unordered_set>
-#include <cdk/emitters/basic_postfix_emitter.h>
-#include <cdk/ast/basic_node.h>
 
 namespace p6 {
 
   //!
   //! Traverse syntax tree and generate the corresponding assembly code.
   //!
-  class postfix_writer: public basic_ast_visitor {
+  class postfix_writer : public basic_ast_visitor {
     cdk::symbol_table<p6::symbol> &_symtab;
     cdk::basic_postfix_emitter &_pf;
     int _lbl;
@@ -21,7 +21,7 @@ namespace p6 {
     // State for local variable offset allocation
     bool _allocating_offsets;
     int _local_offset;
-    std::unordered_map<p6::variable_declaration_node*, int> _declOffsets;
+    std::unordered_map<p6::variable_declaration_node *, int> _declOffsets;
 
     // Vectors for loop control labels (stop and next multilevel logic)
     std::vector<std::string> _loopStopLabels;
@@ -40,20 +40,17 @@ namespace p6 {
 
   public:
     postfix_writer(std::shared_ptr<cdk::compiler> compiler, cdk::symbol_table<p6::symbol> &symtab,
-                   cdk::basic_postfix_emitter &pf) :
-        basic_ast_visitor(compiler), _symtab(symtab), _pf(pf), _lbl(0),
-        _allocating_offsets(false), _local_offset(0), _currentReturnType(nullptr), _inMainProgram(false),
-        _scanned_functions(false) {
-    }
+                   cdk::basic_postfix_emitter &pf)
+        : basic_ast_visitor(compiler), _symtab(symtab), _pf(pf), _lbl(0),
+          _allocating_offsets(false), _local_offset(0), _currentReturnType(nullptr),
+          _inMainProgram(false), _scanned_functions(false) {}
 
     p6::semantic_context semantic_context() const {
       return {_currentReturnType, static_cast<int>(_loopStopLabels.size()), nullptr};
     }
 
   public:
-    ~postfix_writer() {
-      os().flush();
-    }
+    ~postfix_writer() { os().flush(); }
 
   private:
     /** Method used to generate sequential labels. */
@@ -68,17 +65,17 @@ namespace p6 {
 
     void promote(std::shared_ptr<cdk::basic_type> from, std::shared_ptr<cdk::basic_type> to);
     void emit_comparison(int op, std::shared_ptr<cdk::basic_type> operand_type);
-    void emit_static_initializer(cdk::expression_node *init, std::shared_ptr<cdk::basic_type> type, bool sign_neg = false);
-    std::shared_ptr<cdk::basic_type> get_common_type(std::shared_ptr<cdk::basic_type> lt, std::shared_ptr<cdk::basic_type> rt);
-
+    void emit_static_initializer(cdk::expression_node *init, std::shared_ptr<cdk::basic_type> type,
+                                 bool sign_neg = false);
+    std::shared_ptr<cdk::basic_type> get_common_type(std::shared_ptr<cdk::basic_type> lt,
+                                                     std::shared_ptr<cdk::basic_type> rt);
 
   public:
-  // do not edit these lines
+    // do not edit these lines
 #define __IN_VISITOR_HEADER__
-#include ".auto/visitor_decls.h"       // automatically generated
+#include ".auto/visitor_decls.h" // automatically generated
 #undef __IN_VISITOR_HEADER__
-  // do not edit these lines: end
-
+    // do not edit these lines: end
   };
 
-} // p6
+} // namespace p6

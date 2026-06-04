@@ -62,6 +62,41 @@ static bool is_numeric(std::shared_ptr<cdk::basic_type> type) {
   return is_integer(type) || is_real(type);
 }
 
+static bool is_literal_initializer(cdk::expression_node *init) {
+  if (dynamic_cast<cdk::balanced3_node *>(init) ||
+      dynamic_cast<cdk::takum3_node *>(init) ||
+      dynamic_cast<cdk::string_node *>(init) ||
+      dynamic_cast<p6::nullptr_node *>(init)) {
+    return true;
+  }
+
+  if (auto unary = dynamic_cast<cdk::unary_operation_node *>(init)) {
+    if (dynamic_cast<cdk::unary_minus_node *>(unary) ||
+        dynamic_cast<cdk::unary_plus_node *>(unary)) {
+      return is_literal_initializer(unary->argument());
+    }
+  }
+
+  return false;
+}
+
+static bool is_block_terminator(cdk::basic_node *node) {
+  return dynamic_cast<p6::stop_node *>(node) ||
+         dynamic_cast<p6::next_node *>(node) ||
+         dynamic_cast<p6::return_node *>(node);
+}
+
+static void check_block_terminators(cdk::sequence_node *instructions) {
+  if (!instructions)
+    return;
+
+  for (size_t i = 0; i + 1 < instructions->size(); i++) {
+    if (is_block_terminator(instructions->node(i))) {
+      throw std::string("stop, next, and return must be the last instruction in their block");
+    }
+  }
+}
+
 void p6::type_checker::do_sequence_node(cdk::sequence_node *const node, int lvl) {
   for (size_t i = 0; i < node->size(); i++) {
     if (node->node(i))
@@ -428,6 +463,7 @@ void p6::type_checker::do_block_node(p6::block_node *const node, int lvl) {
   _symtab.push();
   if (node->declarations())
     node->declarations()->accept(this, lvl + 2);
+  check_block_terminators(node->instructions());
   if (node->instructions())
     node->instructions()->accept(this, lvl + 2);
   _symtab.pop();
@@ -451,11 +487,15 @@ void p6::type_checker::do_return_node(p6::return_node *const node, int lvl) {
 }
 
 void p6::type_checker::do_stop_node(p6::stop_node *const node, int lvl) {
+  if (node->level() <= 0)
+    throw std::string("stop level must be positive");
   if (_inLoop < node->level())
     throw std::string("stop level exceeds loop nesting level");
 }
 
 void p6::type_checker::do_next_node(p6::next_node *const node, int lvl) {
+  if (node->level() <= 0)
+    throw std::string("next level must be positive");
   if (_inLoop < node->level())
     throw std::string("next level exceeds loop nesting level");
 }
@@ -572,6 +612,12 @@ void p6::type_checker::do_variable_declaration_node(p6::variable_declaration_nod
 
   // Add to symbol table
   bool is_global = (_currentReturnType == nullptr);
+  if (!is_global && node->qualifier() != 0)
+    throw std::string("cannot use public or forward qualifiers in local variable declaration");
+
+  if (is_global && node->initializer() && !is_literal_initializer(node->initializer()))
+    throw std::string("global variable '" + id + "' initializer must be a literal");
+
   auto sym =
       std::make_shared<p6::symbol>(var_type, id, 0, is_global, false, false, node->qualifier());
   _symtab.insert(id, sym);
