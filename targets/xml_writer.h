@@ -1,6 +1,6 @@
 #pragma once
 
-#include "targets/basic_ast_visitor.h"
+#include "targets/type_checker.h"
 #include <cdk/ast/basic_node.h>
 
 namespace p6 {
@@ -9,7 +9,10 @@ namespace p6 {
    * Print nodes as XML elements to the output stream.
    */
   class xml_writer: public basic_ast_visitor {
-  [[maybe_unused]] cdk::symbol_table<p6::symbol> &_symtab;
+    cdk::symbol_table<p6::symbol> &_symtab;
+    std::shared_ptr<cdk::basic_type> _currentReturnType = nullptr;
+    int _inLoop = 0;
+    std::shared_ptr<cdk::basic_type> _expectedType = nullptr;
 
   public:
     xml_writer(std::shared_ptr<cdk::compiler> compiler, cdk::symbol_table<p6::symbol> &symtab) :
@@ -19,6 +22,10 @@ namespace p6 {
   public:
     ~xml_writer() {
       os().flush();
+    }
+
+    p6::semantic_context semantic_context() const {
+      return {_currentReturnType, _inLoop, _expectedType};
     }
 
   private:

@@ -25,6 +25,7 @@ private:
 
   // last symbol inserted in symbol table
   std::shared_ptr<p6::symbol> _new_symbol;
+  bool _semantic_errors = false;
 
 protected:
   basic_ast_visitor(std::shared_ptr<cdk::compiler> compiler) :
@@ -54,6 +55,14 @@ public:
 
   void reset_new_symbol() {
     _new_symbol = nullptr;
+  }
+
+  bool semantic_errors() const {
+    return _semantic_errors;
+  }
+
+  void set_semantic_error() {
+    _semantic_errors = true;
   }
 
 public:

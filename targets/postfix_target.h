@@ -29,7 +29,7 @@ namespace p6 {
       postfix_writer writer(compiler, symtab, pf);
       compiler->ast()->accept(&writer, 0);
 
-      return true;
+      return !writer.semantic_errors();
     }
 
   };

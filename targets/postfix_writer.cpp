@@ -267,6 +267,7 @@ void p6::postfix_writer::do_integer_node(cdk::integer_node *const node, int lvl)
 }
 
 void p6::postfix_writer::do_string_node(cdk::string_node *const node, int lvl) {
+  ASSERT_SAFE_EXPRESSIONS;
   if (_allocating_offsets)
     return;
 
@@ -640,9 +641,11 @@ void p6::postfix_writer::do_assignment_node(cdk::assignment_node *const node, in
 
 void p6::postfix_writer::do_program_node(p6::program_node *const node, int lvl) {
   _inMainProgram = true;
+  _currentReturnType = cdk::balanced3_type::create();
+  ASSERT_SAFE_EXPRESSIONS;
+
   _allocating_offsets = true;
   _local_offset = 0;
-  _currentReturnType = cdk::balanced3_type::create();
   if (node->statements())
     node->statements()->accept(this, lvl);
 
@@ -850,6 +853,7 @@ void p6::postfix_writer::do_if_else_node(p6::if_else_node *const node, int lvl) 
 //---------------------------------------------------------------------------
 
 void p6::postfix_writer::do_block_node(p6::block_node *const node, int lvl) {
+  ASSERT_SAFE_EXPRESSIONS;
   _symtab.push();
   if (node->declarations())
     node->declarations()->accept(this, lvl);
@@ -895,6 +899,7 @@ void p6::postfix_writer::do_return_node(p6::return_node *const node, int lvl) {
 }
 
 void p6::postfix_writer::do_stop_node(p6::stop_node *const node, int lvl) {
+  ASSERT_SAFE_EXPRESSIONS;
   if (_allocating_offsets)
     return;
 
@@ -903,6 +908,7 @@ void p6::postfix_writer::do_stop_node(p6::stop_node *const node, int lvl) {
 }
 
 void p6::postfix_writer::do_next_node(p6::next_node *const node, int lvl) {
+  ASSERT_SAFE_EXPRESSIONS;
   if (_allocating_offsets)
     return;
 

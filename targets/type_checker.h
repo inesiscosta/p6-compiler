@@ -57,6 +57,7 @@ namespace p6 {
       (node)->accept(&checker, 0);                                                                 \
     } catch (const std::string &problem) {                                                         \
       std::cerr << (node)->lineno() << ": " << problem << std::endl;                               \
+      this->set_semantic_error();                                                                  \
       return;                                                                                      \
     }                                                                                              \
   }
