@@ -7,3 +7,4 @@ p6
 *.tab.c
 *.tab.h
 p6_scanner.cpp
+runtime/*.a
