@@ -46,6 +46,7 @@
 %token tEXTERN tFORWARD tPUBLIC                                  // Function modifiers
 %token tIF tELIF tELSE tWHILE tSTOP tNEXT tRETURN                // Control flow
 %token tREAD tPRINT_NL tNULL tSIZEOF tBEGIN tEND tUNARY tARROW   // Others
+%token tKEY tCLOCK tRANDOM                                        // Interactive built-ins
 
 // Resolve the dangling else problem
 %nonassoc tIFX
@@ -206,6 +207,9 @@ expr : tINTEGER                              { $$ = new cdk::balanced3_node(LINE
      | '(' expr ')'                          { $$ = $2; }
      | '[' expr ']'                          { $$ = new p6::stack_alloc_node(LINE, $2); }
      | tSIZEOF '(' expr ')'                  { $$ = new p6::sizeof_node(LINE, $3); }
+     | tKEY '(' expr ')'                     { $$ = new p6::builtin_node(LINE, tKEY, $3); }
+     | tCLOCK                                { $$ = new p6::builtin_node(LINE, tCLOCK); }
+     | tRANDOM '(' expr ')'                  { $$ = new p6::builtin_node(LINE, tRANDOM, $3); }
      | lval                                  { $$ = new cdk::rvalue_node(LINE, $1); }
      | tIDENTIFIER '(' ')'                   { $$ = new p6::function_call_node(LINE, *$1, new cdk::sequence_node(LINE)); delete $1; }
      | tIDENTIFIER '(' exprs ')'             { $$ = new p6::function_call_node(LINE, *$1, $3); delete $1; }

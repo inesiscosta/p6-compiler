@@ -59,6 +59,9 @@ int comment_nesting = 0;
 "input"                       return tREAD;
 "null"                        return tNULL;
 "sizeof"                      return tSIZEOF;
+"key"                         return tKEY;
+"clock"                       return tCLOCK;
+"random"                      return tRANDOM;
 "begin"                       return tBEGIN;
 "end"                         return tEND;
 
