@@ -548,6 +548,17 @@ void p6::type_checker::do_sizeof_node(p6::sizeof_node *const node, int lvl) {
   node->type(cdk::balanced3_type::create());
 }
 
+void p6::type_checker::do_builtin_node(p6::builtin_node *const node, int lvl) {
+  ASSERT_UNSPEC;
+  // key(ms) and random(n) take an integer; clock takes nothing. All three give an integer.
+  if (node->argument()) {
+    node->argument()->accept(this, lvl + 2);
+    if (!node->argument()->is_typed(cdk::TYPE_BALANCED3))
+      throw std::string(node->kind() == tKEY ? "key" : "random") + " expects an integer argument";
+  }
+  node->type(cdk::balanced3_type::create());
+}
+
 void p6::type_checker::do_function_call_node(p6::function_call_node *const node, int lvl) {
   ASSERT_UNSPEC;
   const std::string &id = node->name();
