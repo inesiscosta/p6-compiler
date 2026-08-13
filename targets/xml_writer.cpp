@@ -3,6 +3,7 @@
 #include <string>
 
 #include ".auto/all_nodes.h" // automatically generated
+#include "p6_parser.tab.h"
 
 //---------------------------------------------------------------------------
 
@@ -316,6 +317,15 @@ void p6::xml_writer::do_stack_alloc_node(p6::stack_alloc_node *const node, int l
 void p6::xml_writer::do_sizeof_node(p6::sizeof_node *const node, int lvl) {
   ASSERT_SAFE_EXPRESSIONS;
   do_unary_operation(node, lvl);
+}
+
+void p6::xml_writer::do_builtin_node(p6::builtin_node *const node, int lvl) {
+  ASSERT_SAFE_EXPRESSIONS;
+  const char *name = node->kind() == tKEY ? "key" : node->kind() == tCLOCK ? "clock" : "random";
+  os() << std::string(lvl, ' ') << "<" << node->label() << " name='" << name << "'>" << std::endl;
+  if (node->argument())
+    node->argument()->accept(this, lvl + 2);
+  closeTag(node, lvl);
 }
 
 void p6::xml_writer::do_function_call_node(p6::function_call_node *const node, int lvl) {
