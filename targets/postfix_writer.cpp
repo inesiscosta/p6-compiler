@@ -662,6 +662,7 @@ void p6::postfix_writer::do_program_node(p6::program_node *const node, int lvl) 
     node->statements()->accept(this, lvl);
 
   // end the main function
+  restore_terminal();
   _pf.INT(0);
   _pf.STFVAL32I();
   _pf.LEAVE();
@@ -877,6 +878,7 @@ void p6::postfix_writer::do_return_node(p6::return_node *const node, int lvl) {
     node->retval()->accept(this, lvl);
     promote(node->retval()->type(), _currentReturnType);
     if (_inMainProgram) {
+      restore_terminal(); // the return value waits on the stack
       _pf.B2I();
       _pf.STFVAL32I();
     } else if (_currentReturnType->name() == cdk::TYPE_TAKUM3) {
@@ -893,6 +895,8 @@ void p6::postfix_writer::do_return_node(p6::return_node *const node, int lvl) {
         _pf.STFVAL64I();
       }
     }
+  } else if (_inMainProgram) {
+    restore_terminal();
   }
   _pf.LEAVE();
   _pf.RET();
@@ -972,6 +976,44 @@ void p6::postfix_writer::do_sizeof_node(p6::sizeof_node *const node, int lvl) {
   int size = node->argument()->type()->size();
   _pf.INT(size);
   _pf.I2B();
+}
+
+void p6::postfix_writer::do_builtin_node(p6::builtin_node *const node, int lvl) {
+  ASSERT_SAFE_EXPRESSIONS;
+  if (node->kind() == tKEY)
+    _usesKey = true;
+  if (_allocating_offsets) {
+    if (node->argument())
+      node->argument()->accept(this, lvl);
+    return;
+  }
+
+  // The runtime (runtime/p6.c) works with plain 32-bit integers, so the ternary argument is
+  // converted on the way in and the result on the way out, as for an extern function.
+  int bytes = 0;
+  if (node->argument()) {
+    node->argument()->accept(this, lvl);
+    _pf.B2I();
+    bytes = 4;
+  }
+
+  std::string fn = node->kind() == tKEY ? "p6_key" : node->kind() == tCLOCK ? "p6_clock" : "p6_random";
+  if (_runtimeExterns.insert(fn).second)
+    _pf.EXTERN(fn);
+  _pf.CALL(fn);
+  if (bytes)
+    _pf.TRASH(bytes);
+  _pf.LDFVAL32I();
+  _pf.I2B();
+}
+
+/** Puts the terminal back before the main program ends, if anything read keys in raw mode. */
+void p6::postfix_writer::restore_terminal() {
+  if (!_usesKey)
+    return;
+  if (_runtimeExterns.insert("p6_restore").second)
+    _pf.EXTERN("p6_restore");
+  _pf.CALL("p6_restore");
 }
 
 void p6::postfix_writer::do_function_call_node(p6::function_call_node *const node, int lvl) {

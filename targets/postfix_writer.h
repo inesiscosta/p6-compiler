@@ -36,6 +36,11 @@ namespace p6 {
     // Set of defined functions to avoid duplicate extern declarations
     bool _scanned_functions;
     std::unordered_set<std::string> _definedFunctions;
+
+    // Runtime functions already declared extern, and whether the program reads keys (so the
+    // terminal must be restored wherever the main program ends)
+    std::unordered_set<std::string> _runtimeExterns;
+    bool _usesKey;
     void scan_defined_functions(cdk::basic_node *node);
 
   public:
@@ -43,7 +48,7 @@ namespace p6 {
                    cdk::basic_postfix_emitter &pf)
         : basic_ast_visitor(compiler), _symtab(symtab), _pf(pf), _lbl(0),
           _allocating_offsets(false), _local_offset(0), _currentReturnType(nullptr),
-          _inMainProgram(false), _scanned_functions(false) {}
+          _inMainProgram(false), _scanned_functions(false), _usesKey(false) {}
 
     p6::semantic_context semantic_context() const {
       return {_currentReturnType, static_cast<int>(_loopStopLabels.size()), nullptr};
@@ -64,6 +69,7 @@ namespace p6 {
     }
 
     void promote(std::shared_ptr<cdk::basic_type> from, std::shared_ptr<cdk::basic_type> to);
+    void restore_terminal();
     void emit_comparison(int op, std::shared_ptr<cdk::basic_type> operand_type);
     void emit_static_initializer(cdk::expression_node *init, std::shared_ptr<cdk::basic_type> type,
                                  bool sign_neg = false);
