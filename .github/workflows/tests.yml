@@ -1,0 +1,63 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  tests:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+
+      # The test suite and toolchain live in the private p6-tests repo, readable with a deploy key.
+      - name: Fetch the test suite
+        env:
+          SSH_KEY: ${{ secrets.P6_TESTS_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/p6_tests
+          chmod 600 ~/.ssh/p6_tests
+          git -c core.sshCommand="ssh -i ~/.ssh/p6_tests -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new" \
+            submodule update --init tests
+
+      - name: Install the build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            g++-14 gcc-14-multilib g++-14-multilib make flex bison yasm binutils bzip2 libfl-dev libxml2-utils
+          mkdir -p ~/bin
+          ln -sf /usr/bin/gcc-14 ~/bin/gcc && ln -sf /usr/bin/gcc-14 ~/bin/cc
+          ln -sf /usr/bin/g++-14 ~/bin/g++ && ln -sf /usr/bin/g++-14 ~/bin/c++
+          echo "$HOME/bin" >> "$GITHUB_PATH"
+
+      # Both install to ~/compiladores/root, where the Makefiles and test scripts look.
+      - name: Install CDK21 and RTS7
+        run: |
+          mkdir -p /tmp/toolchain && cd /tmp/toolchain
+          tar -xjf "$GITHUB_WORKSPACE"/tests/vendor/libcdk21-*.tar.bz2
+          tar -xjf "$GITHUB_WORKSPACE"/tests/vendor/librts7-*.tar.bz2
+          cd libcdk21-* && mkdir -p doc && touch doc/.docsdone && make -j"$(nproc)" install
+          cd ../librts7-* && make install
+
+      - name: Build the compiler
+        run: make
+
+      - name: Build Tetris
+        run: make -C tetris
+
+      - name: Parser tests
+        working-directory: tests
+        run: |
+          ln -sf ../p6 p6
+          ./check-parser.sh | tee parser.log
+          ../.github/check-summary.sh parser.log
+
+      - name: Expected-output tests
+        if: ${{ !cancelled() }}
+        working-directory: tests
+        run: |
+          ln -sf ../p6 p6
+          ./check-expected.sh | tee expected.log
+          ../.github/check-summary.sh expected.log

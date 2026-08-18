@@ -19,3 +19,7 @@ Beyond the course specification, this compiler adds three integer built-ins so P
 * `random(n)` is a random integer in `[0, n)`.
 
 They compile to calls into `runtime/p6.c` (build it with `make -C runtime` and link `-lp6` before `-lrts`). A program that uses `key` gets its terminal restored wherever the main program ends.
+
+## Tests
+
+The course test suite is the `tests` submodule (the private `p6-tests` repo, which also holds the CDK21 and RTS7 sources). Fetch it with `git submodule update --init`, then, from `tests/` with the compiler linked as `./p6`, run `./check-parser.sh` and `./check-expected.sh`. The `tests` GitHub Action does all of this on every push, fetching the submodule with the `P6_TESTS_SSH_KEY` deploy key.

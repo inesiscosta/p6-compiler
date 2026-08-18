@@ -1,0 +1,4 @@
+[submodule "tests"]
+	path = tests
+	url = git@github.com:inesiscosta/p6-tests.git
+	branch = main
