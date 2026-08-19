@@ -158,3 +158,7 @@ make                         # builds ./p6
 ```
 
 On a machine without the toolchain, [`tetris/play.sh`](tetris/play.sh) builds everything inside a Docker container.
+
+## License
+
+[MIT](LICENSE) © 2026 Inês Costa and Diogo Santos.
